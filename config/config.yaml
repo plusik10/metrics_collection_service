@@ -1,0 +1,6 @@
+http:
+  host: 'localhost'
+  port: ':8080'
+postgres:
+  max_connections: 10
+  
