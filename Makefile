@@ -12,3 +12,8 @@ local-migration-down:
 .PHONY: local-migration-status
 local-migration-status:
 	goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} status -v
+
+
+.PHONY: run
+run:
+	CONFIG_PATH="config/config.yaml" PG_DSN='postgresql://postgres:postgres@localhost:5432/metrics-collection-service' go run cmd/main.go
