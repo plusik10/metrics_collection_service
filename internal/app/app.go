@@ -60,8 +60,9 @@ func (a *App) initPublicHTTP(ctx context.Context) error {
 	r.Post("/track", track.New(ctx, a.serviceProvider.GetMetricService(ctx)))
 
 	a.httpServer = &http.Server{
-		Handler: r,
-		Addr:    a.serviceProvider.GetConfig().HTTP.Port,
+		Handler:           r,
+		Addr:              a.serviceProvider.GetConfig().HTTP.Port,
+		ReadHeaderTimeout: a.serviceProvider.GetConfig().HTTP.Timeout,
 	}
 
 	return nil

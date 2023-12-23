@@ -1,6 +1,7 @@
 http:
   host: 'localhost'
   port: ':8080'
+  timeout: '10s'
 postgres:
   maxConnections: 10
   
