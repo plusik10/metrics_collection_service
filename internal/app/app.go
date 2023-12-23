@@ -2,11 +2,9 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/go-chi/chi"
 	"github.com/plusik10/metrics_collection_service/internal/api/v1/handlers/track"
@@ -39,26 +37,20 @@ func (a *app) Run() error {
 		_ = a.serviceProvider.db.Close()
 	}()
 
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-
 	err := a.runPublicHttp()
 	if err != nil {
 		log.Fatalf("failed to process mux: %v", err)
 	}
-	<-stop
 	return nil
 }
 
 // runPublicHttp - runs the public http server
-// TODO: Graceful shutdown
 func (a *app) runPublicHttp() error {
 	httpPort := a.serviceProvider.GetConfig().HTTP.Port
-
+	fmt.Println("Starting public http server")
 	if err := http.ListenAndServe(httpPort, a.handler); err != nil {
 		return err
 	}
-
 	return nil
 }
 

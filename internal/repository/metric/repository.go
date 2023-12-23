@@ -46,5 +46,4 @@ func (m *metricRepository) Create(ctx context.Context, event *model.Event) error
 	}
 
 	return nil
-
 }
