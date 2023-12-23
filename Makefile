@@ -17,3 +17,17 @@ local-migration-status:
 .PHONY: run
 run:
 	CONFIG_PATH="config/config.yaml" PG_DSN='postgresql://postgres:postgres@localhost:5432/metrics-collection-service' go run cmd/main.go
+
+
+.PHONY: test
+test:
+	go test ./...
+
+.PHONY: test-v-cover
+test-v:
+	go test -v ./...
+
+.PHONY: test-coverage
+test-coverage:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
