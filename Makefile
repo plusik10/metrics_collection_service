@@ -13,6 +13,9 @@ local-migration-down:
 local-migration-status:
 	goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} status -v
 
+.PHONY: docker-compose-up
+docker-compose-up:
+	docker-compose up -d
 
 .PHONY: run
 run:
@@ -31,3 +34,8 @@ test-v:
 test-coverage:
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
+
+
+.PHONY: lint
+lint:
+	golangci-lint run
