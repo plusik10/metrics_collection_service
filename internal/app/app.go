@@ -3,23 +3,20 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/plusik10/metrics_collection_service/internal/api/v1/handlers/track"
 )
 
 type App struct {
-	handler         *chi.Mux
+	httpServer      *http.Server
 	serviceProvider *serviceProvider
-}
-
-func (a *App) initPublicHTTP(ctx context.Context) error {
-	r := chi.NewRouter()
-	r.Post("/track", track.New(ctx, a.serviceProvider.GetMetricService(ctx)))
-	a.handler = r
-
-	return nil
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -37,20 +34,46 @@ func (a *App) Run() error {
 		_ = a.serviceProvider.db.Close()
 	}()
 
-	err := a.runPublicHTTP()
-	if err != nil {
-		return err
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		err := a.runPublicHTTP()
+		if err != nil {
+			log.Println("error running: ", err)
+		}
+	}()
+
+	<-quit
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := a.httpServer.Shutdown(ctx); err != nil {
+		log.Printf("HTTP server shutdown error: %v\n", err)
 	}
+	log.Println("HTTP server shutdown")
+
+	return nil
+}
+
+func (a *App) initPublicHTTP(ctx context.Context) error {
+	r := chi.NewRouter()
+	r.Post("/track", track.New(ctx, a.serviceProvider.GetMetricService(ctx)))
+
+	a.httpServer = &http.Server{
+		Handler: r,
+		Addr:    a.serviceProvider.GetConfig().HTTP.Port,
+	}
+
 	return nil
 }
 
 //nolint:revive
 func (a *App) runPublicHTTP() error {
-	httpPort := a.serviceProvider.GetConfig().HTTP.Port
 	fmt.Println("Starting public http server")
-	if err := http.ListenAndServe(httpPort, a.handler); err != nil {
+	if err := a.httpServer.ListenAndServe(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -68,8 +91,8 @@ func (a *App) initDeps(ctx context.Context) error {
 	return nil
 }
 
-//nolint:revive
 func (a *App) initServiceProvider(ctx context.Context) error {
+	_ = ctx
 	a.serviceProvider = newServiceProvider()
 	return nil
 }
