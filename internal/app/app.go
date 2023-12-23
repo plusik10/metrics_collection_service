@@ -3,27 +3,27 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/plusik10/metrics_collection_service/internal/api/v1/handlers/track"
 )
 
-type app struct {
+type App struct {
 	handler         *chi.Mux
 	serviceProvider *serviceProvider
 }
 
-func (a *app) initPublicHttp(ctx context.Context) error {
+func (a *App) initPublicHTTP(ctx context.Context) error {
 	r := chi.NewRouter()
 	r.Post("/track", track.New(ctx, a.serviceProvider.GetMetricService(ctx)))
 	a.handler = r
+
 	return nil
 }
 
-func NewApp(ctx context.Context) (*app, error) {
-	a := &app{}
+func NewApp(ctx context.Context) (*App, error) {
+	a := &App{}
 	err := a.initDeps(ctx)
 	if err != nil {
 		return nil, err
@@ -32,20 +32,20 @@ func NewApp(ctx context.Context) (*app, error) {
 	return a, nil
 }
 
-func (a *app) Run() error {
+func (a *App) Run() error {
 	defer func() {
 		_ = a.serviceProvider.db.Close()
 	}()
 
-	err := a.runPublicHttp()
+	err := a.runPublicHTTP()
 	if err != nil {
-		log.Fatalf("failed to process mux: %v", err)
+		return err
 	}
 	return nil
 }
 
-// runPublicHttp - runs the public http server
-func (a *app) runPublicHttp() error {
+//nolint:revive
+func (a *App) runPublicHTTP() error {
 	httpPort := a.serviceProvider.GetConfig().HTTP.Port
 	fmt.Println("Starting public http server")
 	if err := http.ListenAndServe(httpPort, a.handler); err != nil {
@@ -54,10 +54,10 @@ func (a *app) runPublicHttp() error {
 	return nil
 }
 
-func (a *app) initDeps(ctx context.Context) error {
+func (a *App) initDeps(ctx context.Context) error {
 	deps := []func(ctx context.Context) error{
 		a.initServiceProvider,
-		a.initPublicHttp,
+		a.initPublicHTTP,
 	}
 	for _, dep := range deps {
 		err := dep(ctx)
@@ -68,7 +68,8 @@ func (a *app) initDeps(ctx context.Context) error {
 	return nil
 }
 
-func (a *app) initServiceProvider(ctx context.Context) error {
+//nolint:revive
+func (a *App) initServiceProvider(ctx context.Context) error {
 	a.serviceProvider = newServiceProvider()
 	return nil
 }

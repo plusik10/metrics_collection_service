@@ -22,7 +22,7 @@ func New(ctx context.Context, service service.MetricService) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&event)
 		if err != nil {
-			sendResponse(w, false, errors.New("Expected json object"), http.StatusBadRequest)
+			sendResponse(w, false, errors.New("expected json object"), http.StatusBadRequest)
 			return
 		}
 
@@ -41,6 +41,7 @@ func New(ctx context.Context, service service.MetricService) http.HandlerFunc {
 	}
 }
 
+//nolint:errcheck
 func sendResponse(w http.ResponseWriter, ok bool, err error, statusCode int) {
 	resp := ResponseTrack{OK: ok}
 	if err != nil {
@@ -48,5 +49,5 @@ func sendResponse(w http.ResponseWriter, ok bool, err error, statusCode int) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }

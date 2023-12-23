@@ -1,12 +1,12 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+//nolint:tagliatelle
 type Event struct {
 	EventType  string    `json:"event_type,omitempty"`
 	ScreenName string    `json:"screen_name,omitempty"`
@@ -15,8 +15,6 @@ type Event struct {
 }
 
 func (e Event) Validate() error {
-	fmt.Println(e)
-
 	return validation.ValidateStruct(&e,
 		validation.Field(&e.EventType, validation.Required),
 		validation.Field(&e.ScreenName, validation.Required),

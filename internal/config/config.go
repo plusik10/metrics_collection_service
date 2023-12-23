@@ -21,7 +21,7 @@ type (
 	}
 	PG struct {
 		DSN                string `yaml:"dsn" env:"PG_DSN"`
-		MaxOpenConnections int32  `yaml:"max_connections"  env:"PG_MAX_CONNECT"`
+		MaxOpenConnections int32  `yaml:"maxConnections"  env:"PG_MAX_CONNECT"`
 	}
 )
 

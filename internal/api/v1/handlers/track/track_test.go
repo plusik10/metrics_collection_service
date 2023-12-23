@@ -18,7 +18,7 @@ import (
 )
 
 func TestNewHandler_Nigative(t *testing.T) {
-	var ctx = context.Background()
+	ctx := context.Background()
 	cases := []struct {
 		event *model.Event
 		OK    bool
@@ -28,8 +28,9 @@ func TestNewHandler_Nigative(t *testing.T) {
 			event: &model.Event{
 				EventType: "",
 			},
-			OK:  false,
-			Err: "action: cannot be blank; event_time: cannot be blank; event_type: cannot be blank; screen_name: cannot be blank.",
+			OK: false,
+			Err: "action: cannot be blank; event_time: cannot be blank; event_type: " +
+				"cannot be blank; screen_name: cannot be blank.",
 		},
 		{
 			event: &model.Event{
@@ -51,7 +52,7 @@ func TestNewHandler_Nigative(t *testing.T) {
 			handler := New(ctx, metricMocks)
 			b, err := json.Marshal(tc.event)
 			assert.NoError(t, err)
-			req, err := http.NewRequest(http.MethodPost, "/track", bytes.NewReader(b))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/track", bytes.NewReader(b))
 			if err != nil {
 				assert.Error(t, err)
 			}
@@ -67,7 +68,7 @@ func TestNewHandler_Nigative(t *testing.T) {
 }
 
 func TestNewHandler_Success(t *testing.T) {
-	var ctx = context.Background()
+	ctx := context.Background()
 	cases := []struct {
 		event *model.Event
 	}{
@@ -92,7 +93,7 @@ func TestNewHandler_Success(t *testing.T) {
 				mock.Anything,
 				mock.AnythingOfType("*model.Event")).
 				Return(nil)
-			req, err := http.NewRequest(http.MethodPost, "/track", bytes.NewReader(b))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/track", bytes.NewReader(b))
 			assert.NoError(t, err)
 			rr := httptest.NewRecorder()
 			handler.ServeHTTP(rr, req)
@@ -107,22 +108,22 @@ func TestNewHandler_EmptyJson(t *testing.T) {
 		t.Parallel()
 		metricMocks := mocks.NewMetricService(t)
 		handler := New(ctx, metricMocks)
-		req, err := http.NewRequest(http.MethodPost, "/track", bytes.NewReader([]byte("")))
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/track", bytes.NewReader([]byte("")))
 		if err != nil {
 			assert.Error(t, err)
 		}
 		rr := httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
 		var res ResponseTrack
-		json.NewDecoder(rr.Body).Decode(&res)
+		_ = json.NewDecoder(rr.Body).Decode(&res)
 		require.Equal(t, false, res.OK)
-		require.Equal(t, "Expected json object", res.Err)
+		require.Equal(t, "expected json object", res.Err)
 		require.Equal(t, http.StatusBadRequest, rr.Code)
 	})
 }
 
 func TestNewHandler_ErrService(t *testing.T) {
-	var ctx = context.Background()
+	ctx := context.Background()
 	cases := []struct {
 		event *model.Event
 		OK    bool
@@ -153,7 +154,7 @@ func TestNewHandler_ErrService(t *testing.T) {
 				mock.AnythingOfType("*model.Event")).
 				Return(errors.New("example error message"))
 
-			req, err := http.NewRequest(http.MethodPost, "/track", bytes.NewReader(b))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/track", bytes.NewReader(b))
 			if err != nil {
 				assert.NoError(t, err)
 			}

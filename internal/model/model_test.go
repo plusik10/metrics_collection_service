@@ -8,7 +8,6 @@ import (
 )
 
 func TestEvent_Validate_Positive(t *testing.T) {
-
 	testCase := []struct {
 		name  string
 		event Event
@@ -44,7 +43,6 @@ func TestEvent_Validate_Positive(t *testing.T) {
 }
 
 func TestEvent_Validate_Nigative(t *testing.T) {
-
 	testCase := []struct {
 		name  string
 		event Event
@@ -100,5 +98,4 @@ func TestEvent_Validate_Nigative(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
-
 }
